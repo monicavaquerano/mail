@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
 function compose_email() {
 
   // Show compose view and hide other views
+  document.querySelector('#details-view').style.display = 'none';
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
@@ -24,9 +25,38 @@ function compose_email() {
 
 }
 
+function view_email(id) {
+  fetch(`/emails/${id}`)
+    .then(response => response.json())
+    .then(email => {
+      // Print email
+      // console.log(email);
+
+      // Show the mailbox and hide other views
+      document.querySelector('#details-view').style.display = 'block';
+      document.querySelector('#emails-view').style.display = 'none';
+      document.querySelector('#compose-view').style.display = 'none';
+
+      document.querySelector('#details-view').innerHTML = `
+      <ul class="list-group mb-3">
+        <li class="list-group-item"><strong>From:</strong> ${email.sender}</li>
+        <li class="list-group-item"><strong>To:</strong> ${email.recipients}</li>
+        <li class="list-group-item"><strong>Subject:</strong> ${email.subject}</li>
+        <li class="list-group-item"><strong>Timestamp:</strong> ${email.timestamp}</li>
+      </ul>
+      <button type="button" class="btn btn-primary mb-3">Primary</button>
+    
+      <p>${email.body}</p>
+
+      `
+
+    });
+}
+
 function load_mailbox(mailbox) {
 
   // Show the mailbox and hide other views
+  document.querySelector('#details-view').style.display = 'none';
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
 
@@ -37,10 +67,29 @@ function load_mailbox(mailbox) {
   fetch(`/emails/${mailbox}`)
     .then(response => response.json())
     .then(emails => {
-      // Print emails
-      console.log(emails);
-
       // ... do something else with emails ...
+      emails.forEach(email => {
+        // Create a div element for each
+        const newEmail = document.createElement('div');
+        newEmail.className = "list-group"
+
+        // Change background color
+        const bgColor = email.read ? 'list-group-item-secondary' : '';
+
+        newEmail.innerHTML = `
+          <a href="#" class="list-group-item list-group-item-action ${bgColor}">
+            <div class="d-flex w-100 justify-content-between ">
+              <p class="fw-bold mb-1">${email.sender}</p><p class="fw-normal mb-1">${email.subject}</p><p class="fw-light mb-1">${email.timestamp}</p>
+            </div>
+          </a>
+        `;
+
+        // Click event to view email
+        newEmail.addEventListener('click', () => { view_email(email.id) });
+        document.querySelector('#emails-view').append(newEmail);
+      });
+
+
     });
 }
 
