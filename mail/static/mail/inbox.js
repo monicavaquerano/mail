@@ -44,11 +44,31 @@ function view_email(id) {
         <li class="list-group-item"><strong>Subject:</strong> ${email.subject}</li>
         <li class="list-group-item"><strong>Timestamp:</strong> ${email.timestamp}</li>
       </ul>
-      <button type="button" class="btn btn-primary mb-3">Primary</button>
-    
+      <button type="button" class="btn btn-primary mb-3">Reply</button>
+      <button type="button" class="btn btn-secondary mb-3">Archive</button>
       <p>${email.body}</p>
-
       `
+
+      // Change read/unread status
+      if (!email.read) {
+        fetch(`/emails/${email.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            // archived: true
+            read: true
+          })
+        })
+      }
+
+      // Change archived/unarchived status
+      // if (!email.read) {
+      //   fetch(`/emails/${email.id}`, {
+      //     method: 'PUT',
+      //     body: JSON.stringify({
+      //       archived: true
+      //     })
+      //   })
+      // }
 
     });
 }
