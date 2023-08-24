@@ -44,8 +44,6 @@ function view_email(id) {
         <li class="list-group-item"><strong>Subject:</strong> ${email.subject}</li>
         <li class="list-group-item"><strong>Timestamp:</strong> ${email.timestamp}</li>
       </ul>
-      <button type="button" class="btn btn-primary mb-3">Reply</button>
-      <button type="button" class="btn btn-secondary mb-3">Archive</button>
       <p>${email.body}</p>
       `
 
@@ -54,21 +52,41 @@ function view_email(id) {
         fetch(`/emails/${email.id}`, {
           method: 'PUT',
           body: JSON.stringify({
-            // archived: true
             read: true
           })
         })
       }
 
       // Change archived/unarchived status
-      // if (!email.read) {
-      //   fetch(`/emails/${email.id}`, {
-      //     method: 'PUT',
-      //     body: JSON.stringify({
-      //       archived: true
-      //     })
-      //   })
-      // }
+      const btnArchived = document.createElement('button');
+      btnArchived.className = email.archived ? "btn btn-secondary my-3" : "btn btn-primary my-3";
+      btnArchived.innerHTML = email.archived ? "Archived" : "Unarchived";
+      btnArchived.addEventListener('click', function () {
+        fetch(`/emails/${email.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            archived: !email.archived
+          })
+        })
+          .then(() => { load_mailbox('archive') })
+      });
+      document.querySelector('#details-view').append(btnArchived)
+
+      // Reply button
+      const btnReply = document.createElement('button');
+      btnReply.className = "btn btn-primary my-3 ms-3";
+      btnReply.innerHTML = "Reply";
+      btnReply.addEventListener('click', () => {
+        compose_email();
+        document.querySelector('#compose-recipients').value = email.sender;
+        let subject = email.subject;
+        if (subject.split(' ', 1)[0] != "Re:") {
+          subject = `Re: ${email.subject}`
+        }
+        document.querySelector('#compose-subject').value = subject;
+        document.querySelector('#compose-body').value = `On ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
+      });
+      document.querySelector('#details-view').append(btnReply);
 
     });
 }
@@ -132,7 +150,11 @@ function send_email(event) {
     .then(result => {
       // Print result
       console.log(result);
-    });
-  // Agregar un catch
+    })
+    // Agregar un catch
+    .catch(error => {
+      console.log('Error:', error);
+    })
+    .then(() => { load_mailbox('sent') });
 
 }
